@@ -1,3 +1,7 @@
 name: SleepPlugin
 main: org.roaringmind.sleep.SleepPlugin
 version: ${version}
+commands:
+  sleepy:
+    description: Lists sleepy users
+    usage: /<command>
