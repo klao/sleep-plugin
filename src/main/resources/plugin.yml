@@ -1,0 +1,3 @@
+name: SleepPlugin
+main: org.roaringmind.sleep.SleepPlugin
+version: ${version}
