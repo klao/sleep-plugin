@@ -12,6 +12,10 @@ import org.bukkit.event.player.PlayerBedEnterEvent.BedEnterResult;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+// TODO: "borrow" features from:
+// https://github.com/Nuytemans-Dieter/BetterSleeping
+// https://github.com/JoelGodOfwar/SinglePlayerSleep
+
 public class SleepPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
