@@ -49,8 +49,8 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         Bukkit.broadcastMessage("SleepPlugin: " + message);
     }
 
-    private boolean votingPending = false;
-    private int positiveVotes = 0;
+    private boolean votingPending = false;  //Ez arra van, hogy ha valaki ágyba fekszik miközben már van votolás, ne kezdödjön elörröl
+    private int positiveVotes = 0; //Ezek a vote ok száma
     private int negativeVotes = 0;
 
     @Override
@@ -80,13 +80,12 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             .append("  ")
             .append("[No]").color(ChatColor.DARK_RED).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy no"))
             .create();
-        // Lehetne egyszerre mindenkinek kuldeni igy:
         // getServer().spigot().broadcast(msg);
         votingPending = true;
         
         getServer().spigot().broadcast(msg);
         
-        
+        //(terveim szerint) itt lesz: xp bar os countdown a vote végéig (tudom hogy lehet, söt elég könyü), (nem mindenképp pont itt) valami ellenörzés hogy csak egyszer lehessen vote olni 
         
         
         votingPending = false;
@@ -98,7 +97,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerBedEnter(PlayerBedEnterEvent event) {
         if (votingPending) {
-            event.getPlayer().chat("/sleepy yes");
+            event.getPlayer().chat("/sleepy yes");  //lehessen ágybafeküdni a voteoláshoz
             return;
         }
         
@@ -111,9 +110,12 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         for (var p : getServer().getOnlinePlayers()) {
             if (p == event.getPlayer()) continue;
 
-            p.setGameMode(GameMode.SPECTATOR);
-            p.setWalkSpeed(0);
-            p.setFlySpeed(0);
+            if (!p.isSleeping()) {  //azért hogy aki ágyban van maradjon survival ba
+
+                p.setGameMode(GameMode.SPECTATOR);
+                p.setWalkSpeed(0);
+                p.setFlySpeed(0);
+            }
         }
     }
 
