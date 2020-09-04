@@ -27,6 +27,10 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 // https://github.com/JoelGodOfwar/SinglePlayerSleep
 
 public class SleepPlugin extends JavaPlugin implements Listener {
+    private boolean votingPending = false;  //Ez arra van, hogy ha valaki ágyba fekszik miközben már van votolás, ne kezdödjön elörröl
+    private int positiveVotes = 0; //Ezek a vote ok száma
+    private int negativeVotes = 0;
+
     @Override
     public void onDisable() {
         getLogger().info("Bye...");
@@ -39,7 +43,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
 
         // Command handlers
         getCommand("sleepy").setExecutor(this);
-        
+
 
         PluginDescriptionFile pluginDescription = this.getDescription();
         getLogger().info("The " + pluginDescription.getName() + " version " + pluginDescription.getVersion() + " salutes you!");
@@ -49,25 +53,23 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         Bukkit.broadcastMessage("SleepPlugin: " + message);
     }
 
-    private boolean votingPending = false;  //Ez arra van, hogy ha valaki ágyba fekszik miközben már van votolás, ne kezdödjön elörröl
-    private int positiveVotes = 0; //Ezek a vote ok száma
-    private int negativeVotes = 0;
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        shout("" + sender + " sent " + command.getName() + " " + String.join(" ", args));        
-        
-        if (args[0].equals("Yes") && !votingPending/* && positiveVotes + negativeVotes < getServer().getOnlinePlayers().size()*/) {
-            shout(sender.getName() + "voted for sleeping");
-            ++positiveVotes;
-            shout("Currently there are" + positiveVotes + "for sleeping, and" + negativeVotes + "against sleeping");
-        }
-        
-        if (args[0].equals("No") && !votingPending/* && positiveVotes + negativeVotes < getServer().getOnlinePlayers().size()*/) {
-            shout(sender.getName() + "voted against sleeping");
-            ++positiveVotes;
-            shout("Currently there are" + positiveVotes + "votes for sleeping, and" + negativeVotes + "against sleeping");
-        }
+        shout("" + sender + " sent " + command.getName() + " " + String.join(" ", args));
+
+        new ProgressBar((Player)sender, this);
+
+        // if (args[0].equals("Yes") && !votingPending/* && positiveVotes + negativeVotes < getServer().getOnlinePlayers().size()*/) {
+        //     shout(sender.getName() + "voted for sleeping");
+        //     ++positiveVotes;
+        //     shout("Currently there are" + positiveVotes + "for sleeping, and" + negativeVotes + "against sleeping");
+        // }
+
+        // if (args[0].equals("No") && !votingPending/* && positiveVotes + negativeVotes < getServer().getOnlinePlayers().size()*/) {
+        //     shout(sender.getName() + "voted against sleeping");
+        //     ++positiveVotes;
+        //     shout("Currently there are" + positiveVotes + "votes for sleeping, and" + negativeVotes + "against sleeping");
+        // }
 
         return true;
     }
@@ -75,30 +77,30 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     private void counter(int i) {
         for (var p : getServer().getOnlinePlayers()) {p.sendExperienceChange(i / 30);}
     }
-    
+
     public boolean voting() {
-        
-       
+
+
         var msg = new ComponentBuilder("OK to sleep?  ")
             .append("[Yes]").color(ChatColor.DARK_GREEN).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy yes"))
             .append("  ")
             .append("[No]").color(ChatColor.DARK_RED).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy no"))
             .create();
-        // getServer().spigot().broadcast(msg);
-        votingPending = true;
-        
-        getServer().spigot().broadcast(msg);
-        
-        for (int i = 30; i < 0; i = i - 1) {
-            
-            Bukkit.getServer().getScheduler().runTaskLater(this, counter(i), 20);
-        }
-        
-        
 
-        //(terveim szerint) itt lesz: xp bar os countdown a vote végéig (tudom hogy lehet, söt elég könyü), (nem mindenképp pont itt) valami ellenörzés hogy csak egyszer lehessen vote olni 
-        
-        
+        votingPending = true;
+
+        getServer().spigot().broadcast(msg);
+
+        // for (int i = 30; i < 0; i = i - 1) {
+
+        //     Bukkit.getServer().getScheduler().runTaskLater(this, counter(i), 20);
+        // }
+
+
+
+        //(terveim szerint) itt lesz: xp bar os countdown a vote végéig (tudom hogy lehet, söt elég könyü), (nem mindenképp pont itt) valami ellenörzés hogy csak egyszer lehessen vote olni
+
+
         votingPending = false;
         return false;
     }
@@ -111,11 +113,11 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             event.getPlayer().chat("/sleepy yes");  //lehessen ágybafeküdni a voteoláshoz
             return;
         }
-        
+
         if (event.getBedEnterResult() != BedEnterResult.OK) return;
 
         if (!voting()) return;
-        
+
 
         shout("" + event.getPlayer().getName() + " wants to sleep");
         for (var p : getServer().getOnlinePlayers()) {
