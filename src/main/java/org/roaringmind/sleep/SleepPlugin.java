@@ -27,8 +27,15 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 // https://github.com/JoelGodOfwar/SinglePlayerSleep
 
 public class SleepPlugin extends JavaPlugin implements Listener {
-    private boolean votingPending = false;  //Ez arra van, hogy ha valaki ágyba fekszik miközben már van votolás, ne kezdödjön elörröl
-    private int positiveVotes = 0; //Ezek a vote ok száma
+    enum State {
+        NORMAL,     // Normal state, waiting till someone gets in bed
+        VOTING,     // After someone got in bed; waiting for vote results and counting down
+        SLEEPING,   // Vote was positive, we put everyone to sleep and waiting for morning
+    }
+
+    private State state;
+    private boolean votingPending = false;  // Ez arra van, hogy ha valaki ágyba fekszik miközben már van votolás, ne kezdödjön elörröl
+    private int positiveVotes = 0; // Ezek a vote ok száma
     private int negativeVotes = 0;
 
     @Override
