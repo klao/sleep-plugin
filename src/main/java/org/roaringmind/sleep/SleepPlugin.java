@@ -1,7 +1,5 @@
 package org.roaringmind.sleep;
 
-import java.util.HashMap;
-import java.util.Vector;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -14,8 +12,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent.BedEnterResult;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -72,9 +72,13 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         return true;
     }
 
-    
+    private void counter(int i) {
+        for (var p : getServer().getOnlinePlayers()) {p.sendExperienceChange(i / 30);}
+    }
     
     public boolean voting() {
+        
+       
         var msg = new ComponentBuilder("OK to sleep?  ")
             .append("[Yes]").color(ChatColor.DARK_GREEN).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy yes"))
             .append("  ")
@@ -85,6 +89,13 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         
         getServer().spigot().broadcast(msg);
         
+        for (int i = 30; i < 0; i = i - 1) {
+            
+            Bukkit.getServer().getScheduler().runTaskLater(this, counter(i), 20);
+        }
+        
+        
+
         //(terveim szerint) itt lesz: xp bar os countdown a vote végéig (tudom hogy lehet, söt elég könyü), (nem mindenképp pont itt) valami ellenörzés hogy csak egyszer lehessen vote olni 
         
         
