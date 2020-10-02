@@ -1,31 +1,47 @@
 package org.roaringmind.sleep;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class ProgressBar extends BukkitRunnable {
-    private Player player;
-    private Plugin plugin;
-    private float origXP;
+    private Runnable callback;
+    private HashMap<Player, Float> origXP;
     private float currentProgress = 1;
 
-    public ProgressBar(Player player, Plugin plugin) {
-        this.player = player;
-        this.plugin = plugin;
-        origXP = player.getExp();
-        // 5 tikkenkent levesz 5 szazalekot
+    public ProgressBar(Collection<? extends Player> players, Plugin plugin, Runnable callback) {
+        this.callback = callback;
+
+        origXP = new HashMap<>();
+        for (var p : players) {
+            origXP.put(p, p.getExp());
+        }
+
+        // 5 tikkenkent fut
         this.runTaskTimer(plugin, 1, 5);
+    }
+
+    @Override
+    public synchronized void cancel() {
+        for (var e : origXP.entrySet()) {
+            e.getKey().sendExperienceChange(e.getValue());
+        }
+        super.cancel();
     }
 
     @Override
     public void run() {
         if (currentProgress > 0) {
-            player.sendExperienceChange(currentProgress);
+            for (var p : origXP.keySet()) {
+                p.sendExperienceChange(currentProgress);
+            }
             currentProgress -= 0.01;
         } else {
-            player.sendExperienceChange(origXP);
             this.cancel();
+            callback.run();
         }
     }
 }
