@@ -1,10 +1,10 @@
 package org.roaringmind.sleep;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -36,6 +36,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     private State state = State.NORMAL;
     private HashMap<UUID, VoteState> playerVotes;
     private ProgressBar countdown;
+    private ArrayList<SleepState> frozenPlayers;
 
     @Override
     public void onDisable() {
@@ -68,6 +69,16 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             return true;
         }
         Player player = (Player) sender;
+
+        if (args[0].equals("start")) {
+            startSleep();
+            return true;
+        }
+
+        if (args[0].equals("end")) {
+            endSleep();
+            return true;
+        }
 
         if (state != State.VOTING) {
             getLogger().info("Command received while no voting in progress");
@@ -113,15 +124,17 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     void startSleep() {
         state = State.SLEEPING;
 
+        frozenPlayers = new ArrayList<>();
         for (var p : getServer().getOnlinePlayers()) {
             if (p.isSleeping()) {
                 // azért hogy aki ágyban van maradjon survival mode-ban és rendesen aludjon
                 continue;
             }
 
-            p.setGameMode(GameMode.SPECTATOR);
-            p.setWalkSpeed(0);
-            p.setFlySpeed(0);
+            shout("Freezing: " + p.getName());
+            var playerSleep = new SleepState(p);
+            playerSleep.freezeForSleep();
+            frozenPlayers.add(playerSleep);
         }
     }
 
@@ -171,16 +184,11 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     private void endSleep() {
         state = State.NORMAL;
 
-        // TODO!
-        for (var p : getServer().getOnlinePlayers()) {
-            // if (p == event.getPlayer())
-            // continue;
-
-            p.setGameMode(GameMode.SURVIVAL);
-            p.setWalkSpeed(1);
-            p.setFlySpeed(0);
+        for (var frozenPlayer : frozenPlayers) {
+            shout("Unfreezing: " + frozenPlayer.getPlayer().getName());
+            frozenPlayer.restore();
         }
-
+        frozenPlayers = null;
     }
 
     @EventHandler
