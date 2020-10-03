@@ -91,7 +91,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             return true;
         }
 
-        playerVote(player, args[0].equals("Yes"));
+        playerVote(player, args[0].equalsIgnoreCase("yes"));
         return true;
     }
 
