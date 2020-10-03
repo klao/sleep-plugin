@@ -160,7 +160,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
                 .color(ChatColor.DARK_RED).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy no")).create();
         getServer().spigot().broadcast(msg);
 
-        countdown = new ProgressBar(getServer().getOnlinePlayers(), this, () -> voteTimeout());
+        countdown = new ProgressBar(getServer().getOnlinePlayers(), this, this::voteTimeout);
 
         playerVotes = new HashMap<>();
         playerVotes.put(initiator.getUniqueId(), VoteState.INITIATOR);
@@ -207,13 +207,11 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             return;
         }
 
-        if (state == State.VOTING) {
-            // TODO: ellenőrizni, hogy ha a kezdeményező szállt ki, akkor cancelálni az
-            // egészet vagy nem engedni vagy valami
-            if (playerVotes.get(player.getUniqueId()) == VoteState.INITIATOR) {
-                shout(player.getName() + " doesn't want to sleep after all. Canceling.");
-                cancelVote();
-            }
+        // TODO: ellenőrizni, hogy ha a kezdeményező szállt ki, akkor cancelálni az
+        // egészet vagy nem engedni vagy valami
+        if (state == State.VOTING && playerVotes.get(player.getUniqueId()) == VoteState.INITIATOR) {
+            shout(player.getName() + " doesn't want to sleep after all. Canceling.");
+            cancelVote();
         }
     }
 
