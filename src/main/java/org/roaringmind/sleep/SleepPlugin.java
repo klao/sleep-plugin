@@ -126,6 +126,13 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     }
 
     public void startVoting(Player initiator) {
+        if (getServer().getOnlinePlayers().size() <= 1) {
+            // Csak egy ember van online, nem kell csinálni semmit.
+            // TODO: nethert és endet kideríteni
+            shout("Sleep tight, " + initiator.getName());
+            return;
+        }
+
         shout("" + initiator.getName() + " wants to sleep");
         state = State.VOTING;
 
