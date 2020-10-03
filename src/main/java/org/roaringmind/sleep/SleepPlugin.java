@@ -80,6 +80,12 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             return true;
         }
 
+        if (args[0].equals("f") && state == State.VOTING) {
+            shout("Starting sleep (forced)!");
+            countdown.cancel();
+            startSleep();
+        }
+
         if (state != State.VOTING) {
             getLogger().info("Command received while no voting in progress");
             return true;
@@ -117,7 +123,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         if (yes > 1) {
             shout("Starting sleep!");
             countdown.cancel();
-            // startSleep();
+            startSleep();
         }
     }
 
@@ -194,7 +200,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
         Player player = event.getPlayer();
-        shout(player.getName()+ " left the bed, state is " + state);
+        shout(player.getName() + " left the bed, state is " + state);
 
         if (state == State.SLEEPING) {
             endSleep();
