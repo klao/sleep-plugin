@@ -154,7 +154,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
                 .color(ChatColor.DARK_RED).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy no")).create();
         getServer().spigot().broadcast(msg);
 
-        countdown = new ProgressBar(getServer().getOnlinePlayers(), this, () -> shout("Time is up!"));
+        countdown = new ProgressBar(getServer().getOnlinePlayers(), this, () -> voteTimeout());
 
         playerVotes = new HashMap<>();
         playerVotes.put(initiator.getUniqueId(), VoteState.INITIATOR);
@@ -193,6 +193,9 @@ public class SleepPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
+        Player player = event.getPlayer();
+        shout(player.getName()+ " left the bed, state is " + state);
+
         if (state == State.SLEEPING) {
             endSleep();
             return;
@@ -201,6 +204,20 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         if (state == State.VOTING) {
             // TODO: ellenőrizni, hogy ha a kezdeményező szállt ki, akkor cancelálni az
             // egészet vagy nem engedni vagy valami
+            if (playerVotes.get(player.getUniqueId()) == VoteState.INITIATOR) {
+                shout(player.getName() + " doesn't want to sleep after all. Canceling.");
+                cancelVote();
+            }
         }
+    }
+
+    private void cancelVote() {
+        state = State.NORMAL;
+        countdown.cancel();
+    }
+
+    private void voteTimeout() {
+        shout("Time is up, not enough votes to sleep!");
+        state = State.NORMAL;
     }
 }
