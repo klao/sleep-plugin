@@ -2,9 +2,12 @@ package org.roaringmind.sleep;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World.Environment;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -80,6 +83,16 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             return true;
         }
 
+        if (args[0].equals("speed")) {
+            player.setWalkSpeed(Float.parseFloat(args[1]));
+            return true;
+        }
+
+        if (args[0].equals("fspeed")) {
+            player.setFlySpeed(Float.parseFloat(args[1]));
+            return true;
+        }
+
         if (args[0].equals("f") && state == State.VOTING) {
             shout("Starting sleep (forced)!");
             countdown.cancel();
@@ -131,7 +144,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         state = State.SLEEPING;
 
         frozenPlayers = new ArrayList<>();
-        for (var p : getServer().getOnlinePlayers()) {
+        for (var p : overworldPlayers()) {
             if (p.isSleeping()) {
                 // azért hogy aki ágyban van maradjon survival mode-ban és rendesen aludjon
                 continue;
@@ -144,31 +157,12 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    public void startVoting(Player initiator) {
-        if (getServer().getOnlinePlayers().size() <= 1) {
-            // Csak egy ember van online, nem kell csinálni semmit.
-            // TODO: nethert és endet kideríteni
-            shout("Sleep tight, " + initiator.getName());
-            return;
-        }
-
-        shout("" + initiator.getName() + " wants to sleep");
-        state = State.VOTING;
-
-        var msg = new ComponentBuilder("OK to sleep?  ").append("[Yes]").color(ChatColor.DARK_GREEN).bold(true)
-                .event(new ClickEvent(Action.RUN_COMMAND, "/sleepy yes")).append("  ").append("[No]")
-                .color(ChatColor.DARK_RED).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy no")).create();
-        getServer().spigot().broadcast(msg);
-
-        countdown = new ProgressBar(getServer().getOnlinePlayers(), this, this::voteTimeout);
-
-        playerVotes = new HashMap<>();
-        playerVotes.put(initiator.getUniqueId(), VoteState.INITIATOR);
-        countVotes();
-    }
-
     @EventHandler
     public void onPlayerBedEnter(PlayerBedEnterEvent event) {
+
+        // shout("bed enter " + event.getPlayer().getName() + " result: " +
+        // event.getBedEnterResult());
+
         if (event.getBedEnterResult() != BedEnterResult.OK)
             return;
 
@@ -185,6 +179,40 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         }
 
         startVoting(event.getPlayer());
+    }
+
+    private List<Player> overworldPlayers() {
+        return getServer().getOnlinePlayers().stream()
+                .filter((p) -> p.getLocation().getWorld().getEnvironment() == Environment.NORMAL)
+                .collect(Collectors.toList());
+    }
+
+    public void startVoting(Player initiator) {
+        var players = overworldPlayers();
+        if (players.size() <= 1) {
+            // Csak egy ember van online, nem kell csinálni semmit.
+            // TODO: nethert és endet kideríteni
+            shout("Sleep tight, " + initiator.getName());
+            return;
+        }
+
+        shout("" + initiator.getName() + " wants to sleep");
+        state = State.VOTING;
+
+        var msg = new ComponentBuilder("OK to sleep?  ").append("[Yes]").color(ChatColor.DARK_GREEN).bold(true)
+                .event(new ClickEvent(Action.RUN_COMMAND, "/sleepy yes")).append("  ").append("[No]")
+                .color(ChatColor.DARK_RED).bold(true).event(new ClickEvent(Action.RUN_COMMAND, "/sleepy no")).create();
+        // getServer().spigot().broadcast(msg);
+
+        for (var p : players) {
+            p.spigot().sendMessage(msg);
+        }
+
+        countdown = new ProgressBar(players, this, this::voteTimeout);
+
+        playerVotes = new HashMap<>();
+        playerVotes.put(initiator.getUniqueId(), VoteState.INITIATOR);
+        countVotes();
     }
 
     private void endSleep() {
