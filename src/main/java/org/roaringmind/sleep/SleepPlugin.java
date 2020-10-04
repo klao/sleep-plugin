@@ -205,6 +205,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         // getServer().spigot().broadcast(msg);
 
         for (var p : players) {
+            if (p == initiator) continue;
             p.spigot().sendMessage(msg);
         }
 
