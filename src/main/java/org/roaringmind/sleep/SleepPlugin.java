@@ -18,7 +18,6 @@ import org.bukkit.event.player.PlayerBedEnterEvent.BedEnterResult;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Scoreboard;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -62,7 +61,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         this.saveDefaultConfig();
     }
 
-    private void shout(String message) {
+    public void shout(String message) {
         Bukkit.broadcastMessage("SleepPlugin: " + message);
     }
 
@@ -156,7 +155,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     private void countVotes() {
         int yes = 0;
         int no = 0;
-        float oPlayers = overworldPlayers().size();
+        int oPlayers = overworldPlayers().size();
         for (var vote : playerVotes.keySet()) {
             if (playerVotes.get(vote) == VoteState.NO) {
                 ++no;
@@ -171,16 +170,16 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         }
         shout("There are currently " + yes + " votes for sleeping, and " + no + " votes against");
         // TODO: check and actually start the sleep here if the counts are OK
-        float limit = oPlayers / 100F * (float) this.getConfig().getInt("SleepPercent");
-        //shout("" + limit + " " + (yes >= limit) + " " + yes);
-        if (yes > limit - 0.001) {
-            //shout("Starting sleep!");
+        int limit = Math.round((float) oPlayers / 100F * (float) this.getConfig().getInt("SleepPercent"));
+        shout("" + limit + " " + (yes >= limit) + " " + yes);
+        if (yes >= limit) {
+            shout("Starting sleep!");
             countdown.cancel();
             startSleep();
         }
-        if (no > oPlayers - limit - 0.001) {
+        if (no > oPlayers - limit) {
             countdown.cancel();
-            //shout("too many voted no");
+            shout("too many voted no");
         }
     }
 
@@ -204,7 +203,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerBedEnter(PlayerBedEnterEvent event) {
 
-        // //shout("bed enter " + event.getPlayer().getName() + " result: " +
+        //shout("bed enter " + event.getPlayer().getName() + " result: " +
         // event.getBedEnterResult());
 
         if (event.getBedEnterResult() != BedEnterResult.OK)

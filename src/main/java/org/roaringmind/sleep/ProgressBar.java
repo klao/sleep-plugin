@@ -12,19 +12,23 @@ public class ProgressBar extends BukkitRunnable {
     private HashMap<Player, Float> origXP;
     private float currentProgress = 1F;
     private float step;
+    private Plugin plugin;
     public ProgressBar(Collection<? extends Player> players, Plugin plugin, Runnable callback, int duration) {
         this.callback = callback;
         origXP = new HashMap<>();
         for (var p : players) {
             origXP.put(p, p.getExp());
         }
+        this.plugin = plugin;
         step = 1F/(float)duration / 4F;
+        plugin.getLogger().info("step: " + step);
         // 5 tikkenkent fut
         this.runTaskTimer(plugin, 1, 5);
     }
 
     @Override
     public synchronized void cancel() {
+        plugin.getLogger().info("Cancelling...");
         for (var e : origXP.entrySet()) {
             e.getKey().sendExperienceChange(e.getValue());
         }
@@ -33,6 +37,7 @@ public class ProgressBar extends BukkitRunnable {
 
     @Override
     public void run() {
+        plugin.getLogger().info("Progress: " + currentProgress);
         if (currentProgress > 0) {
             for (var p : origXP.keySet()) {
                 p.sendExperienceChange(currentProgress);
@@ -42,5 +47,6 @@ public class ProgressBar extends BukkitRunnable {
             this.cancel();
             callback.run();
         }
+        plugin.getLogger().info("Progress: " + currentProgress);
     }
 }
