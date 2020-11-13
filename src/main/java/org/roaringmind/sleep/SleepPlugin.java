@@ -168,10 +168,10 @@ public class SleepPlugin extends JavaPlugin implements Listener {
 
             }
         }
-        shout("There are currently " + yes + " votes for sleeping, and " + no + " votes against");
+        //shout("There are currently " + yes + " votes for sleeping, and " + no + " votes against");
         // TODO: check and actually start the sleep here if the counts are OK
         int limit = Math.round((float) oPlayers / 100F * (float) this.getConfig().getInt("SleepPercent"));
-        shout("" + limit + " " + (yes >= limit) + " " + yes);
+        //shout("" + limit + " " + (yes >= limit) + " " + yes);
         if (yes >= limit) {
             shout("Starting sleep!");
             countdown.cancel();
