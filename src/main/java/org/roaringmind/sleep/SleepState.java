@@ -24,12 +24,11 @@ public class SleepState {
     }
 
     public void freezeForSleep() {
-        player.setGameMode(GameMode.SPECTATOR);
-        player.setWalkSpeed(0);
-        player.setFlySpeed(0);
+        player.setSleepingIgnored(true);
     }
 
     public void restore() {
+        player.setSleepingIgnored(false);
         player.setGameMode(gameMode);
         player.setWalkSpeed(walkSpeed);
         player.setFlySpeed(flySpeed);

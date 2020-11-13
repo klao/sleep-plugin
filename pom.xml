@@ -4,7 +4,7 @@
 
   <groupId>org.roaringmind.sleep</groupId>
   <artifactId>SleepPlugin</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <name>SleepPlugin</name>
 
   <properties>
