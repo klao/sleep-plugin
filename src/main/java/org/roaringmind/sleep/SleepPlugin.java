@@ -68,7 +68,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        shout("" + sender + " sent " + command.getName() + " " + String.join(" ", args));
+        //shout("" + sender + " sent " + command.getName() + " " + String.join(" ", args));
 
         if (!(sender instanceof Player)) {
             getLogger().warning("Command is not from a player");
@@ -100,13 +100,14 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             shout("Starting sleep (forced)!");
             countdown.cancel();
             startSleep();
+            return true;
         }
 
-        if (args[0] == "unfreeze") {
-            shout("unfreezing!");
-            {
-                endSleep();
-            }
+        if (args[0].equals("config")) {
+            shout("SleepPercent: " + this.getConfig().getInt("SleepPercent"));
+            shout("SleepWhenTimerRunsOut: " + this.getConfig().getBoolean("SleepWhenTimerRunsOut"));
+            shout("TimerLength: " + this.getConfig().getInt("TimerLength"));
+            return true;
         }
 
         if (state != State.VOTING) {
@@ -114,7 +115,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             return true;
         }
 
-        if (args[0] == "votes") {
+        if (args[0].equals("votes")) {
             int yes = 0;
             int no = 0;
             for (var vote : playerVotes.values()) {
@@ -155,6 +156,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     private void countVotes() {
         int yes = 0;
         int no = 0;
+        float oPlayers = overworldPlayers().size();
         for (var vote : playerVotes.keySet()) {
             if (playerVotes.get(vote) == VoteState.NO) {
                 ++no;
@@ -169,14 +171,16 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         }
         shout("There are currently " + yes + " votes for sleeping, and " + no + " votes against");
         // TODO: check and actually start the sleep here if the counts are OK
-        if (yes > overworldPlayers().size() / 100 * this.getConfig().getInt("SleepPercent")) {
-            shout("Starting sleep!");
+        float limit = oPlayers / 100F * (float) this.getConfig().getInt("SleepPercent");
+        //shout("" + limit + " " + (yes >= limit) + " " + yes);
+        if (yes > limit - 0.001) {
+            //shout("Starting sleep!");
             countdown.cancel();
             startSleep();
         }
-        if (no > overworldPlayers().size() / 100 * (100 - this.getConfig().getInt("SleepPercent"))) {
+        if (no > oPlayers - limit - 0.001) {
             countdown.cancel();
-            shout("too many voted no");
+            //shout("too many voted no");
         }
     }
 
@@ -190,7 +194,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
                 continue;
             }
 
-            shout("Freezing: " + p.getName());
+            //shout("Freezing: " + p.getName());
             var playerSleep = new SleepState(p);
             playerSleep.freezeForSleep();
             frozenPlayers.add(playerSleep);
@@ -200,7 +204,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerBedEnter(PlayerBedEnterEvent event) {
 
-        // shout("bed enter " + event.getPlayer().getName() + " result: " +
+        // //shout("bed enter " + event.getPlayer().getName() + " result: " +
         // event.getBedEnterResult());
 
         if (event.getBedEnterResult() != BedEnterResult.OK)
@@ -255,7 +259,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         state = State.NORMAL;
 
         for (var frozenPlayer : frozenPlayers) {
-            shout("Unfreezing: " + frozenPlayer.getPlayer().getName());
+            //shout("Unfreezing: " + frozenPlayer.getPlayer().getName());
             frozenPlayer.restore();
         }
         frozenPlayers = null;
@@ -264,7 +268,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
         Player player = event.getPlayer();
-        shout(player.getName() + " left the bed, state is " + state);
+        //shout(player.getName() + " left the bed, state is " + state);
 
         if (state == State.SLEEPING) {
             endSleep();
@@ -274,7 +278,7 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         // TODO: ellenőrizni, hogy ha a kezdeményező szállt ki, akkor cancelálni az
         // egészet vagy nem engedni vagy valami
         if (state == State.VOTING && playerVotes.get(player.getUniqueId()) == VoteState.INITIATOR) {
-            shout(player.getName() + " doesn't want to sleep after all. Canceling.");
+            shout(player.getName() + " doesn't want to sleep after all.");
             cancelVote();
         }
     }
