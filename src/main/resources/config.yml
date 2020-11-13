@@ -1,0 +1,3 @@
+SleepPercent: 50
+SleepWhenTimerRunsOut: true
+TimerLength: 30

@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerBedEnterEvent.BedEnterResult;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -57,6 +58,8 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         PluginDescriptionFile pluginDescription = this.getDescription();
         getLogger().info(
                 "The " + pluginDescription.getName() + " version " + pluginDescription.getVersion() + " salutes you!");
+
+        this.saveDefaultConfig();
     }
 
     private void shout(String message) {
@@ -99,13 +102,40 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             startSleep();
         }
 
+        if (args[0] == "unfreeze") {
+            shout("unfreezing!");
+            {
+                endSleep();
+            }
+        }
+
         if (state != State.VOTING) {
-            getLogger().info("Command received while no voting in progress");
+            getLogger().info("ERROR\n-Either command doesn't exist\n-Or it can only be used while Voting is in process");
             return true;
+        }
+
+        if (args[0] == "votes") {
+            int yes = 0;
+            int no = 0;
+            for (var vote : playerVotes.values()) {
+                if (vote == VoteState.NO) {
+                    ++no;
+                } else {
+                    ++yes;
+                }
+            }
+
+            getServer().getPlayer(sender.getName()).sendMessage("Yes: " + yes + "  No: " + no);
         }
 
         playerVote(player, args[0].equalsIgnoreCase("yes"));
         return true;
+    }
+
+    private List<Player> overworldPlayers() {
+        return getServer().getOnlinePlayers().stream()
+                .filter((p) -> p.getLocation().getWorld().getEnvironment() == Environment.NORMAL)
+                .collect(Collectors.toList());
     }
 
     private void playerVote(Player player, boolean vote) {
@@ -121,22 +151,32 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         countVotes();
     }
 
+
     private void countVotes() {
         int yes = 0;
         int no = 0;
-        for (var vote : playerVotes.values()) {
-            if (vote == VoteState.NO) {
+        for (var vote : playerVotes.keySet()) {
+            if (playerVotes.get(vote) == VoteState.NO) {
                 ++no;
-            } else {
-                ++yes;
+            } else{
+                for (var o : overworldPlayers()) {
+                    if (o == getServer().getPlayer(vote)) {
+                        ++yes;
+                    }
+                }
+
             }
         }
         shout("There are currently " + yes + " votes for sleeping, and " + no + " votes against");
         // TODO: check and actually start the sleep here if the counts are OK
-        if (yes > 1) {
+        if (yes > overworldPlayers().size() / 100 * this.getConfig().getInt("SleepPercent")) {
             shout("Starting sleep!");
             countdown.cancel();
             startSleep();
+        }
+        if (no > overworldPlayers().size() / 100 * (100 - this.getConfig().getInt("SleepPercent"))) {
+            countdown.cancel();
+            shout("too many voted no");
         }
     }
 
@@ -181,12 +221,6 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         startVoting(event.getPlayer());
     }
 
-    private List<Player> overworldPlayers() {
-        return getServer().getOnlinePlayers().stream()
-                .filter((p) -> p.getLocation().getWorld().getEnvironment() == Environment.NORMAL)
-                .collect(Collectors.toList());
-    }
-
     public void startVoting(Player initiator) {
         var players = overworldPlayers();
         if (players.size() <= 1) {
@@ -205,11 +239,12 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         // getServer().spigot().broadcast(msg);
 
         for (var p : players) {
-            if (p == initiator) continue;
+            if (p == initiator)
+                continue;
             p.spigot().sendMessage(msg);
         }
 
-        countdown = new ProgressBar(players, this, this::voteTimeout);
+        countdown = new ProgressBar(players, this, this::voteTimeout, this.getConfig().getInt("TimerLength"));
 
         playerVotes = new HashMap<>();
         playerVotes.put(initiator.getUniqueId(), VoteState.INITIATOR);
@@ -250,7 +285,11 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     }
 
     private void voteTimeout() {
-        shout("Time is up, not enough votes to sleep!");
+        shout("Time is up");
+        if (this.getConfig().getBoolean("SleepWhenTimerRunsOut")) {
+            startSleep();
+            return;
+        }
         state = State.NORMAL;
     }
 }

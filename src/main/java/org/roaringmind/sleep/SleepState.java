@@ -2,6 +2,7 @@ package org.roaringmind.sleep;
 
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 
 public class SleepState {
@@ -11,6 +12,7 @@ public class SleepState {
     private float walkSpeed;
     private float flySpeed;
     private Location location;
+    private int insomnia;
 
     public SleepState(Player player) {
         this.player = player;
@@ -18,6 +20,7 @@ public class SleepState {
         walkSpeed = player.getWalkSpeed();
         flySpeed = player.getFlySpeed();
         location = player.getLocation();
+        insomnia = player.getStatistic(Statistic.TIME_SINCE_REST);
     }
 
     public void freezeForSleep() {
@@ -31,6 +34,7 @@ public class SleepState {
         player.setWalkSpeed(walkSpeed);
         player.setFlySpeed(flySpeed);
         player.teleport(location);
+        player.setStatistic(Statistic.TIME_SINCE_REST, insomnia);
     }
 
     public Player getPlayer() {

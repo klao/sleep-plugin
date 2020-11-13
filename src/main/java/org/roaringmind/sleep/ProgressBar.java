@@ -10,11 +10,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class ProgressBar extends BukkitRunnable {
     private Runnable callback;
     private HashMap<Player, Float> origXP;
-    private float currentProgress = 1;
-
-    public ProgressBar(Collection<? extends Player> players, Plugin plugin, Runnable callback) {
+    private float currentProgress = 0;
+    public ProgressBar(Collection<? extends Player> players, Plugin plugin, Runnable callback, int length) {
         this.callback = callback;
-
+        currentProgress = length / 25;
         origXP = new HashMap<>();
         for (var p : players) {
             origXP.put(p, p.getExp());
