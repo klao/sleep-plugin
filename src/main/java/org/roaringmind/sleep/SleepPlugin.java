@@ -285,6 +285,11 @@ public class SleepPlugin extends JavaPlugin implements Listener {
         if (state == State.VOTING && playerVotes.get(player.getUniqueId()) == VoteState.INITIATOR) {
             shout(player.getName() + " doesn't want to sleep after all.");
             cancelVote();
+            return;
+        }
+
+        if (state == State.VOTING) {
+            playerVotes.remove(player.getUniqueId());
         }
     }
 
