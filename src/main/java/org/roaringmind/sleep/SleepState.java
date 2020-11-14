@@ -29,11 +29,11 @@ public class SleepState {
 
     public void restore() {
         player.setSleepingIgnored(false);
-        player.setGameMode(gameMode);
-        player.setWalkSpeed(walkSpeed);
-        player.setFlySpeed(flySpeed);
-        player.teleport(location);
-        player.setStatistic(Statistic.TIME_SINCE_REST, insomnia);
+        //player.setGameMode(gameMode);
+        //player.setWalkSpeed(walkSpeed);
+        //player.setFlySpeed(flySpeed);
+        //player.teleport(location);
+        //player.setStatistic(Statistic.TIME_SINCE_REST, insomnia);
     }
 
     public Player getPlayer() {
