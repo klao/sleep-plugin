@@ -68,41 +68,47 @@ public class SleepPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         //shout("" + sender + " sent " + command.getName() + " " + String.join(" ", args));
-
+        boolean isOp;
         if (!(sender instanceof Player)) {
             getLogger().warning("Command is not from a player");
             return true;
         }
         Player player = (Player) sender;
 
-        if (args[0].equals("start")) {
+        if (player.isOp()) {
+            isOp = true;
+        } else {
+            isOp = false;
+        }
+
+        if (args[0].equals("start") && isOp) {
             startSleep();
             return true;
         }
 
-        if (args[0].equals("end")) {
+        if (args[0].equals("end") && isOp) {
             endSleep();
             return true;
         }
 
-        if (args[0].equals("speed")) {
+        if (args[0].equals("speed") && isOp) {
             player.setWalkSpeed(Float.parseFloat(args[1]));
             return true;
         }
 
-        if (args[0].equals("fspeed")) {
+        if (args[0].equals("fspeed") && isOp) {
             player.setFlySpeed(Float.parseFloat(args[1]));
             return true;
         }
 
-        if (args[0].equals("f") && state == State.VOTING) {
+        if (args[0].equals("f") && state == State.VOTING && isOp) {
             shout("Starting sleep (forced)!");
             countdown.cancel();
             startSleep();
             return true;
         }
 
-        if (args[0].equals("config")) {
+        if (args[0].equals("config") && isOp) {
             shout("SleepPercent: " + this.getConfig().getInt("SleepPercent"));
             shout("SleepWhenTimerRunsOut: " + this.getConfig().getBoolean("SleepWhenTimerRunsOut"));
             shout("TimerLength: " + this.getConfig().getInt("TimerLength"));
