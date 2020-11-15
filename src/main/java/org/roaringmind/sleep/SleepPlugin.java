@@ -115,6 +115,17 @@ public class SleepPlugin extends JavaPlugin implements Listener {
             return true;
         }
 
+        if (args[0].equals("afk")) {
+            boolean onOrOf = player.isSleepingIgnored();
+            if (onOrOf) {
+                player.setSleepingIgnored(false);
+                return true;
+            } else {
+                player.setSleepingIgnored(true);
+                return true;
+            }
+        }
+
         if (state != State.VOTING) {
             getLogger().info("ERROR\n-Either command doesn't exist\n-Or it can only be used while Voting is in process");
             return true;

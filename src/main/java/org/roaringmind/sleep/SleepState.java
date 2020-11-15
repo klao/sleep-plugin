@@ -13,6 +13,7 @@ public class SleepState {
     private float flySpeed;
     private Location location;
     private int insomnia;
+    private boolean sleepignore;
 
     public SleepState(Player player) {
         this.player = player;
@@ -21,6 +22,7 @@ public class SleepState {
         flySpeed = player.getFlySpeed();
         location = player.getLocation();
         insomnia = player.getStatistic(Statistic.TIME_SINCE_REST);
+        sleepignore = player.isSleepingIgnored();
     }
 
     public void freezeForSleep() {
@@ -28,7 +30,7 @@ public class SleepState {
     }
 
     public void restore() {
-        player.setSleepingIgnored(false);
+        player.setSleepingIgnored(sleepignore);
         //player.setGameMode(gameMode);
         //player.setWalkSpeed(walkSpeed);
         //player.setFlySpeed(flySpeed);
